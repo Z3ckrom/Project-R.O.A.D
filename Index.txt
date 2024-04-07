@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>R.O.A.D.</title>
+    <script src="{{ url_for('static',filename='chart.min.js') }}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* Add some styling for the chart container */
+        #chartContainer {
+            width: 60%; /* Adjust the width as needed */
+            margin: 20px auto; /* Center the chart container */
+            position: relative;
+            left: 100px; /* Move the chart to the right */
+        }
+
+        #ROV_DATA {
+            padding: 10px;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        /* Style the side navigation */
+        .sidenav {
+            height: 100%;
+            width: 200px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            padding-top: 20px;
+        }
+
+        /* Side navigation links */
+        .sidenav a {
+            color: white;
+            padding: 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        /* Change color on hover */
+        .sidenav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        /* Style the content */
+        .content {
+            margin-left: 200px;
+            padding-left: 20px;
+        }
+        /* Script Button */
+        .button {
+            background-color: #04AA6D;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Container for the chart -->
+    <div id="chartContainer">
+        <canvas id="ROV_DATA" width="400" height="200"></canvas>
+    </div>
+    <script>
+    function fetchDataAndUpdateChart() {
+        // Fetch data from PHP script
+        fetch('/data') // Update the path to your PHP script
+            .then(response => response.json())
+            .then(data => {
+                if (data.length === 0) {
+                    // If no data is returned, create an empty chart
+                    createEmptyChart();
+                    return;
+                }
+                // Prepare data for the chart
+                const Tests = data.map(entry => entry[0]);
+                const Voltage = data.map(entry => entry[1]);
+                const pH = data.map(entry => entry[2]);
+                const Temp = data.map(entry => entry[3]);
+                const AirQuality = data.map(entry => entry[4]);
+                
+                // Get the existing chart instance
+                const existingChart = Chart.getChart('ROV_DATA');
+                
+                // Check if the chart exists
+                if (existingChart) {
+                    // Update the existing chart with new data
+                    existingChart.data.labels = Tests;
+                    existingChart.data.datasets[0].data = Voltage;
+                    existingChart.data.datasets[1].data = pH;
+                    existingChart.data.datasets[2].data = Temp;
+                    existingChart.data.datasets[3].data = AirQuality;
+                    existingChart.update(); // Update the chart
+                } else {
+                    // Create a new chart if it doesn't exist
+                    createNewChart(Tests, Voltage, pH, Temp, AirQuality);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+    }
+
+    function createEmptyChart() {
+        const ctx = document.getElementById('ROV_DATA').getContext('2d');
+        const emptyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'pH',
+                        data: [],
+                        fill: 'origin',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Voltage',
+                        data: [],
+                        fill: 'origin',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Temp',
+                        data: [],
+                        fill: 'origin',
+                        backgroundColor: 'rgba(255, 205, 86, 0.2)',
+                        borderColor: 'rgba(255, 205, 86, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Air Quality',
+                        data: [],
+                        fill: 'origin',
+                        backgroundColor: 'rgba(255, 80, 86, 0.2)',
+                        borderColor: 'rgba(255, 80, 80, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true, // Make the chart responsive
+                maintainAspectRatio: false // Allow the chart to adjust its size
+            }
+        });
+    }
+
+    function createNewChart(Tests, Voltage, pH, Temp, AirQuality) {
+        const ctx = document.getElementById('ROV_DATA').getContext('2d');
+        const ROV_DATA = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Tests,
+                datasets: [
+                    {
+                        label: 'pH',
+                        data: pH,
+                        fill: 'origin',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Voltage',
+                        data: Voltage,
+                        fill: 'origin',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Temp',
+                        data: Temp,
+                        fill: 'origin',
+                        backgroundColor: 'rgba(255, 205, 86, 0.2)',
+                        borderColor: 'rgba(255, 205, 86, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Air Quality',
+                        data: AirQuality,
+                        fill: 'origin',
+                        backgroundColor: 'rgba(255, 80, 86, 0.2)',
+                        borderColor: 'rgba(255, 80, 80, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true, // Make the chart responsive
+                maintainAspectRatio: false // Allow the chart to adjust its size
+            }
+        });
+    }
+
+    // Fetch data and update chart every 5 seconds (adjust the interval as needed)
+    setInterval(fetchDataAndUpdateChart, 5000);
+    </script>
+       
+    <div class="sidenav">
+        <a href="#">Home</a>
+        <a href="#">Docs</a>
+    </div>
+    <div class="content">
+        <h2>R.O.A.D.</h2>
+        <p>Data taken from R.O.A.D visualized.</p>
+        <input type="button" class="button" value="Start Program" onclick="startScript()"> 
+        <input type="button" class="button" value="Stop Program" onclick="stopScript()">
+        <input type="button" class="button" value="Download Data" onclick="window.location.href='/download_files'"> 
+    </div>
+     <script>
+        function startScript() {
+            fetch('/start_script')
+                .then(response => console.log('Script started'))
+                .catch(error => console.error('Error starting script:', error));
+        }
+
+        function stopScript() {
+            fetch('/stop_script')
+                .then(response => console.log('Script stopped'))
+                .catch(error => console.error('Error stopping script:', error));
+        }
+    </script>
+</body>
+</html>
