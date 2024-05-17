@@ -8,14 +8,20 @@
     <style>
         /* Add some styling for the chart container */
         #chartContainer {
-            width: 60%; /* Adjust the width as needed */
+            width: 80%; /* Adjust the width as needed */
             margin: 20px auto; /* Center the chart container */
             position: relative;
             left: 100px; /* Move the chart to the right */
         }
+        #pieChartContainer {
+            width: 60%; /* Adjust the width as needed */
+            margin: 20px auto; /* Center the chart container */
+            position: relative;
+            left: 200px; /* Move the chart to the right */ 
+        }
 
         #ROV_DATA {
-            padding: 10px;
+            padding: 20px;
         }
 
         body {
@@ -23,37 +29,13 @@
             font-family: Arial, Helvetica, sans-serif;
         }
 
-        /* Style the side navigation */
-        .sidenav {
-            height: 100%;
-            width: 200px;
-            position: fixed;
-            z-index: 1;
-            top: 0;
-            left: 0;
-            background-color: #111;
-            overflow-x: hidden;
-            padding-top: 20px;
-        }
 
-        /* Side navigation links */
-        .sidenav a {
-            color: white;
-            padding: 16px;
-            text-decoration: none;
-            display: block;
-        }
-
-        /* Change color on hover */
-        .sidenav a:hover {
-            background-color: #ddd;
-            color: black;
-        }
 
         /* Style the content */
         .content {
-            margin-left: 200px;
+            margin-left: 20px;
             padding-left: 20px;
+            margin-top: -400px;
         }
         /* Script Button */
         .button {
@@ -63,9 +45,9 @@
             padding: 15px 32px;
             text-align: center;
             text-decoration: none;
-            display: inline-block;
+            display: block;
             font-size: 16px;
-            margin: 4px 2px;
+            margin: 10px 2px;
             cursor: pointer;
         }
     </style>
@@ -75,44 +57,49 @@
     <div id="chartContainer">
         <canvas id="ROV_DATA" width="400" height="200"></canvas>
     </div>
+
+    <!-- Container for the pie chart -->
+    <div id="pieChartContainer">
+        <canvas id="pieChart" width="400" height="400"></canvas>
+    </div>
     <script>
     function fetchDataAndUpdateChart() {
         // Fetch data from PHP script
-        fetch('/data') // Update the path to your PHP script
-            .then(response => response.json())
-            .then(data => {
-                if (data.length === 0) {
-                    // If no data is returned, create an empty chart
-                    createEmptyChart();
-                    return;
-                }
-                // Prepare data for the chart
-                const Tests = data.map(entry => entry[0]);
-                const Voltage = data.map(entry => entry[1]);
-                const pH = data.map(entry => entry[2]);
-                const Temp = data.map(entry => entry[3]);
-                const AirQuality = data.map(entry => entry[4]);
-                
-                // Get the existing chart instance
-                const existingChart = Chart.getChart('ROV_DATA');
-                
-                // Check if the chart exists
-                if (existingChart) {
-                    // Update the existing chart with new data
-                    existingChart.data.labels = Tests;
-                    existingChart.data.datasets[0].data = Voltage;
-                    existingChart.data.datasets[1].data = pH;
-                    existingChart.data.datasets[2].data = Temp;
-                    existingChart.data.datasets[3].data = AirQuality;
-                    existingChart.update(); // Update the chart
-                } else {
-                    // Create a new chart if it doesn't exist
-                    createNewChart(Tests, Voltage, pH, Temp, AirQuality);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-            });
+        fetch('/line_chart_data') // Update the path to your PHP script
+    .then(response => response.json())
+    .then(lineChartData => {
+        if (lineChartData.length === 0) {
+            // If no data is returned, create an empty chart
+            createEmptyChart();
+            return;
+        }
+        // Prepare data for the chart
+        const Tests = lineChartData.map(entry => entry[3]);
+        const pH = lineChartData.map(entry => entry[4]);
+        const Voltage = lineChartData.map(entry => entry[2]);
+        const Temp = lineChartData.map(entry => entry[1]);
+        const AirQuality = lineChartData.map(entry => entry[0]);
+        
+        // Get the existing chart instance
+        const existingChart = Chart.getChart('ROV_DATA');
+        
+        // Check if the chart exists
+        if (existingChart) {
+            // Update the existing chart with new data
+            existingChart.data.labels = Tests;
+            existingChart.data.datasets[0].data = pH;
+            existingChart.data.datasets[1].data = Voltage;
+            existingChart.data.datasets[2].data = Temp;
+            existingChart.data.datasets[3].data = AirQuality;
+            existingChart.update(); // Update the chart
+        } else {
+            // Create a new chart if it doesn't exist
+            createNewChart(Tests, Voltage, pH, Temp, AirQuality);
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching data:', error);
+    });
     }
 
     function createEmptyChart() {
@@ -214,17 +201,75 @@
     // Fetch data and update chart every 5 seconds (adjust the interval as needed)
     setInterval(fetchDataAndUpdateChart, 5000);
     </script>
+    <script>
+        function updatePieChart(avg_pH, avg_temp, avg_air_quality) {
+        const pieChartCanvas = document.getElementById('pieChart');
+        const ctx = pieChartCanvas.getContext('2d');
+
+        // Check if a chart instance already exists
+        if (window.myPieChart) {
+            window.myPieChart.destroy(); // Destroy the existing chart
+        }
+
+        window.myPieChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['pH', 'Temperature', 'Air Quality'],
+                datasets: [{
+                    data: [avg_pH, avg_temp, avg_air_quality],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: false,
+                width: 200,
+                height: 200,
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                },
+                animation: {
+                    duration: 0
+                }
+                // Add more options as needed
+            }
+        });
+    }
+
+    // Function to fetch averages and update the pie chart
+    function fetchAveragesAndUpdatePieChart() {
+        fetch('/pie_chart_averages') // Update the path to your Flask route for averages
+    .then(response => response.json())
+    .then(pieChartData => {
+        if (pieChartData.error) {
+            console.error('Error fetching averages:', pieChartData.error);
+            return;
+        }
+        const avg_pH = pieChartData.avg_pH;
+        const avg_temp = pieChartData.avg_temp;
+        const avg_air_quality = pieChartData.avg_air_quality;
+        updatePieChart(avg_pH, avg_temp, avg_air_quality);
+    })
+    .catch(error => {
+        console.error('Error fetching averages:', error);
+    });
+    }
+
+    // Call the function to fetch averages and update the pie chart
+    fetchAveragesAndUpdatePieChart();
+    setInterval(fetchAveragesAndUpdatePieChart, 5000);
+    </script>
        
-    <div class="sidenav">
-        <a href="#">Home</a>
-        <a href="#">Docs</a>
-    </div>
     <div class="content">
         <h2>R.O.A.D.</h2>
         <p>Data taken from R.O.A.D visualized.</p>
         <input type="button" class="button" value="Start Program" onclick="startScript()"> 
         <input type="button" class="button" value="Stop Program" onclick="stopScript()">
-        <input type="button" class="button" value="Download Data" onclick="window.location.href='/download_files'"> 
+        <input type="button" class="button" value="Download Data" onclick="window.location.href='/download'"> 
     </div>
      <script>
         function startScript() {
@@ -238,6 +283,7 @@
                 .then(response => console.log('Script stopped'))
                 .catch(error => console.error('Error stopping script:', error));
         }
+        
     </script>
 </body>
 </html>
