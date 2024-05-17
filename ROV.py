@@ -9,8 +9,8 @@ ser = serial.Serial('/dev/ttyACM0', 9600)
 # Connect to MySQL database
 conn = mysql.connector.connect(
     host='localhost',
-    user='kenneth',
-    password='061499kJ',
+    user='USER',
+    password='USER_PASS',
     database='ROV_DATA'
 )
 cursor = conn.cursor()
@@ -40,13 +40,13 @@ def script_execution():
 
         # Create a backup folder with the current timestamp
         file_name = datetime.now().strftime('%Y-%m-%d')
-        folder_path = f'/home/kenneth/shared/DATA_BACKUP/'  # Update the path
+        folder_path = f'/PATH/TO/SHARED/FOLDER'  # Update the path
 
         # Ensure the folder exists, create if not
         os.makedirs(folder_path, exist_ok=True)
 
         # Create a new text file in the backup folder
-        file_path = f'{folder_path}/{file_name}.txt'
+        file_path = f'{folder_path}/{file_name}.csv'
 
         # Write data to the text file as a backup
         with open(file_path, 'a') as file:
