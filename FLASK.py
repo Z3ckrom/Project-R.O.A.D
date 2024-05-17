@@ -7,12 +7,12 @@ import os
 
 app = Flask(__name__, template_folder='/var/www/html', static_folder='/var/www/html')
 
-file_directory = '/home/kenneth/shared/DATA_BACKUP/'
+file_directory = '/PATH/TO/SHARED/FOLDER/'
 
 # Database configuration
 db_host = "localhost"
-db_user = "kenneth"
-db_password = "061499kJ"
+db_user = "USER"
+db_password = "USER_PASS"
 db_name = "ROV_DATA"
 
 def connect_to_database():
